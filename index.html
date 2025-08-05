@@ -16,15 +16,15 @@
     // Firebase v9+ Modular SDK
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-storage.js";
-    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBXEv0Fo-sLvJ6cOKFwKZTEgmUYI_1d2_Y",
-      authDomain: "handmade-shop-19782.firebaseapp.com",
-      projectId: "handmade-shop-19782",
-      storageBucket: "handmade-shop-19782.appspot.com",
-      messagingSenderId: "365931965929",
-      appId: "1:365931965929:web:4a9c78a90c7adf1f00f6b3"
+      apiKey: "AIzaSyDVHfVWcGAGg-rNMCgUJ_S5ZdI5U2WGMRA",
+      authDomain: "handmade-shop-f14f6.firebaseapp.com",
+      projectId: "handmade-shop-f14f6",
+      storageBucket: "handmade-shop-f14f6.appspot.com",
+      messagingSenderId: "71631277425",
+      appId: "1:71631277425:web:a542f15d40c6c42315834a"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -52,17 +52,17 @@
           price: parseFloat(price),
           category,
           image: downloadURL,
-          createdAt: new Date()
+          createdAt: serverTimestamp()
         });
 
-        alert("Product uploaded successfully!");
+        alert("✅ Product uploaded successfully!");
         document.getElementById("image").value = '';
         document.getElementById("name").value = '';
         document.getElementById("price").value = '';
         document.getElementById("category").value = '';
       } catch (error) {
         console.error("Upload Error:", error);
-        alert("Upload failed!");
+        alert("❌ Upload failed. Check console.");
       }
     };
   </script>

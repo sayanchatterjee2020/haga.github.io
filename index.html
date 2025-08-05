@@ -2,76 +2,69 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Panel - Upload Product</title>
+  <title>Admin Panel</title>
 </head>
 <body>
   <h2>Upload Product</h2>
-  <form id="productForm">
-    <input type="text" id="name" placeholder="Product Name" required><br><br>
-    <input type="text" id="price" placeholder="Product Price" required><br><br>
-    <input type="text" id="category" placeholder="Category (e.g., tshirt, bag)" required><br><br>
-    <input type="file" id="image" required><br><br>
-    <button type="submit">Upload</button>
-  </form>
+  <input type="file" id="image" /><br><br>
+  <input type="text" id="name" placeholder="Product Name" /><br><br>
+  <input type="number" id="price" placeholder="Price" /><br><br>
+  <input type="text" id="category" placeholder="Category" /><br><br>
+  <button id="uploadBtn">Upload</button>
 
-  <p id="status"></p>
-
-  <!-- Firebase SDKs -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
+    // Firebase v9+ Modular SDK
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-storage.js";
+    import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
 
-    // Your Firebase config
     const firebaseConfig = {
-      apiKey: "AIzaSyAqoKPFBISZV8kJVymXwMi1zqnuXBBfAwI",
-      authDomain: "alhadini-f8f97.firebaseapp.com",
-      projectId: "alhadini-f8f97",
-      storageBucket: "alhadini-f8f97.firebasestorage.app",
-      messagingSenderId: "652042838370",
-      appId: "1:652042838370:web:151a823b65d111fe3dcc3b",
-      measurementId: "G-RY96V379ZZ"
+      apiKey: "AIzaSyBXEv0Fo-sLvJ6cOKFwKZTEgmUYI_1d2_Y",
+      authDomain: "handmade-shop-19782.firebaseapp.com",
+      projectId: "handmade-shop-19782",
+      storageBucket: "handmade-shop-19782.appspot.com",
+      messagingSenderId: "365931965929",
+      appId: "1:365931965929:web:4a9c78a90c7adf1f00f6b3"
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const storage = getStorage(app);
     const db = getFirestore(app);
 
-    // Handle form submission
-    const form = document.getElementById('productForm');
-    const status = document.getElementById('status');
+    document.getElementById("uploadBtn").onclick = async () => {
+      const imageFile = document.getElementById("image").files[0];
+      const name = document.getElementById("name").value;
+      const price = document.getElementById("price").value;
+      const category = document.getElementById("category").value;
 
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      status.textContent = "Uploading...";
-
-      const name = document.getElementById('name').value;
-      const price = document.getElementById('price').value;
-      const category = document.getElementById('category').value;
-      const file = document.getElementById('image').files[0];
+      if (!imageFile || !name || !price || !category) {
+        alert("Please fill all fields");
+        return;
+      }
 
       try {
-        const storageRef = ref(storage, `products/${file.name}`);
-        await uploadBytes(storageRef, file);
-        const imageUrl = await getDownloadURL(storageRef);
+        const storageRef = ref(storage, "products/" + imageFile.name);
+        await uploadBytes(storageRef, imageFile);
+        const downloadURL = await getDownloadURL(storageRef);
 
         await addDoc(collection(db, "products"), {
           name,
-          price,
+          price: parseFloat(price),
           category,
-          imageUrl,
-          createdAt: serverTimestamp()
+          image: downloadURL,
+          createdAt: new Date()
         });
 
-        status.textContent = "✅ Product uploaded successfully!";
-        form.reset();
+        alert("Product uploaded successfully!");
+        document.getElementById("image").value = '';
+        document.getElementById("name").value = '';
+        document.getElementById("price").value = '';
+        document.getElementById("category").value = '';
       } catch (error) {
-        console.error(error);
-        status.textContent = "❌ Upload failed. Check console for error.";
+        console.error("Upload Error:", error);
+        alert("Upload failed!");
       }
-    });
+    };
   </script>
 </body>
 </html>

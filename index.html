@@ -1,70 +1,128 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <title>Admin Panel</title>
+     
+    <meta charset="UTF-8">
+      <title>Admin Panel - Upload Product</title>
 </head>
+
 <body>
-  <h2>Upload Product</h2>
-  <input type="file" id="image" /><br><br>
-  <input type="text" id="name" placeholder="Product Name" /><br><br>
-  <input type="number" id="price" placeholder="Price" /><br><br>
-  <input type="text" id="category" placeholder="Category" /><br><br>
-  <button id="uploadBtn">Upload</button>
+      <h2>Admin Panel - Upload Product</h2>
 
-  <script type="module">
-    // Firebase v9+ Modular SDK
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-app.js";
-    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-storage.js";
-    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/9.24.0/firebase-firestore.js";
+        <div id="authSection">
+            <button id="signInBtn">Sign In with Google</button>
+            <button id="signOutBtn" style="display:none;">Sign Out</button>
+            <p id="userEmail"></p>
+          </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDVHfVWcGAGg-rNMCgUJ_S5ZdI5U2WGMRA",
-      authDomain: "handmade-shop-f14f6.firebaseapp.com",
-      projectId: "handmade-shop-f14f6",
-      storageBucket: "handmade-shop-f14f6.appspot.com",
-      messagingSenderId: "71631277425",
-      appId: "1:71631277425:web:a542f15d40c6c42315834a"
-    };
+        <form id="productForm" style="display:none;">
+            <input type="text" id="name" placeholder="Product Name" required><br><br>
+            <input type="number" id="price" placeholder="Product Price" required><br><br>
+            <input type="text" id="category" placeholder="Category (e.g., tshirt, bag)" required><br><br>
+            <input type="file" id="image" required><br><br>
+            <button type="submit">Upload</button>
+          </form>
 
-    const app = initializeApp(firebaseConfig);
-    const storage = getStorage(app);
-    const db = getFirestore(app);
+      <p id="status"></p>
 
-    document.getElementById("uploadBtn").onclick = async () => {
-      const imageFile = document.getElementById("image").files[0];
-      const name = document.getElementById("name").value;
-      const price = document.getElementById("price").value;
-      const category = document.getElementById("category").value;
+       
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-analytics.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-storage.js";
+        import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
 
-      if (!imageFile || !name || !price || !category) {
-        alert("Please fill all fields");
-        return;
-      }
+        const firebaseConfig = {
+            apiKey: "AIzaSyAqoKPFBISZV8kJVymXwMi1zqnuXBBfAwI",
+            authDomain: "alhadini-f8f97.firebaseapp.com",
+            projectId: "alhadini-f8f97",
+            storageBucket: "alhadini-f8f97.appspot.com",
+            messagingSenderId: "652042838370",
+            appId: "1:652042838370:web:151a823b65d111fe3dcc3b",
+            measurementId: "G-RY96V379ZZ"
+        };
 
-      try {
-        const storageRef = ref(storage, "products/" + imageFile.name);
-        await uploadBytes(storageRef, imageFile);
-        const downloadURL = await getDownloadURL(storageRef);
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        const storage = getStorage(app);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
 
-        await addDoc(collection(db, "products"), {
-          name,
-          price: parseFloat(price),
-          category,
-          image: downloadURL,
-          createdAt: serverTimestamp()
+        const signInBtn = document.getElementById("signInBtn");
+        const signOutBtn = document.getElementById("signOutBtn");
+        const userEmail = document.getElementById("userEmail");
+        const form = document.getElementById("productForm");
+        const status = document.getElementById("status");
+
+        // Sign in with Google
+        signInBtn.addEventListener('click', async () => {
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                alert("Sign in failed: " + error.message);  // Updated line
+                console.error(error);
+            }
         });
 
-        alert("✅ Product uploaded successfully!");
-        document.getElementById("image").value = '';
-        document.getElementById("name").value = '';
-        document.getElementById("price").value = '';
-        document.getElementById("category").value = '';
-      } catch (error) {
-        console.error("Upload Error:", error);
-        alert("❌ Upload failed. Check console.");
-      }
-    };
-  </script>
+
+        // Sign out
+        signOutBtn.addEventListener('click', () => {
+            signOut(auth);
+        });
+
+        // Auth state listener
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                userEmail.textContent = `Signed in as: ${user.email}`;
+                signInBtn.style.display = "none";
+                signOutBtn.style.display = "inline";
+                form.style.display = "block";
+            } else {
+                userEmail.textContent = "";
+                signInBtn.style.display = "inline";
+                signOutBtn.style.display = "none";
+                form.style.display = "none";
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            status.textContent = "Uploading...";
+
+            const name = document.getElementById('name').value;
+            const price = document.getElementById('price').value;
+            const category = document.getElementById('category').value;
+            const file = document.getElementById('image').files[0];
+
+            try {
+                // Create a unique filename to prevent overwriting
+                const fileName = `${Date.now()}-${file.name}`;
+                const storageRef = ref(storage, `products/${fileName}`);
+
+                await uploadBytes(storageRef, file);
+                const imageUrl = await getDownloadURL(storageRef);
+
+                await addDoc(collection(db, "products"), {
+                    name,
+                    // Store price as a number, not a string
+                    price: parseFloat(price),
+                    category,
+                    imageUrl,
+                    createdAt: serverTimestamp()
+                });
+
+                status.textContent = "✅ Product uploaded successfully!";
+                form.reset();
+            } catch (error) {
+                console.error(error);
+                status.textContent = "❌ Upload failed. Check console for error.";
+            }
+        });
+    </script>
 </body>
+
 </html>
